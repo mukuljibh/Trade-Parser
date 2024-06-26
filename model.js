@@ -13,8 +13,8 @@ const tradeObj = new Schema({
     Market: {
         type: String,
     },
-    TradeType: {
-        type: String,
+    'Buy/Sell Amount': {
+        type: Number,
     },
     Price: {
         type: Number,

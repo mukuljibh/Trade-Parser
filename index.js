@@ -52,9 +52,49 @@ app.post('/upload_files', upload.single("files"), (req, res) => {
             }
         });
 })
-app.get('/balance', (req, res) => {
+app.get('/balance', async (req, res) => {
     const timeStamp = req.body.timestamp;
-
+    const result = await Transaction.aggregate([
+        {
+            $match: { UTC_Time: { $lte: timeStamp } }  // Filter stage to include only documents where UTC_Time is less than or equal to timeStamp
+        },
+        {
+            $group: {
+                _id: "$Market",  // Group by the 'Market' field
+                totalQuantity: {
+                    $sum: {
+                        $cond: {
+                            if: { $eq: ["$Operation", "Buy"] },
+                            then: "$Buy/Sell Amount",
+                            else: { $subtract: [0, "$Buy/Sell Amount"] }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                key: "$_id",
+                value: "$totalQuantity"
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                data: { $push: { k: "$key", v: "$value" } }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                result: { $arrayToObject: "$data" }
+            }
+        },
+        {
+            $replaceRoot: { newRoot: "$result" }
+        }
+    ])
 })
 
 
@@ -68,3 +108,5 @@ app.listen(port, () => {
             console.log(err)
         });
 });
+
+
