@@ -71,7 +71,7 @@ FROM trades
 WHERE UTC_time <= {input timestamp}
 GROUP BY Market;
 */
-app.get('/balance', async (req, res) => {
+app.get('/account/balance', async (req, res) => {
 
     const timeStamp = req.body.timestamp;
     try {
